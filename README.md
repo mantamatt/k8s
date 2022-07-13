@@ -38,13 +38,15 @@ Forwarding IPV4/ lets iptables see bridged traffic
     sudo modprobe br_netfilter
 
  sysctl params required by setup, params persist across reboots
+ 
     cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
     net.bridge.bridge-nf-call-iptables  = 1
     net.bridge.bridge-nf-call-ip6tables = 1
     net.ipv4.ip_forward                 = 1
     EOF
 
- Apply sysctl params without reboot
+Apply sysctl params without reboot
+
     sudo sysctl --system
 
 change cgroup docker driver to systemd
@@ -59,7 +61,7 @@ change cgroup docker driver to systemd
 
 You should now have a file /etc/containerd/config.toml
 
-/etc/containerd/config.toml changes
+## /etc/containerd/config.toml changes
 
 remove cri from disabled plugins:
 
@@ -67,6 +69,8 @@ remove cri from disabled plugins:
     disabled_plugins = [""]
     [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
         SystemdCgroup = true
+
+Restart containerd
 
     sudo systemctl restart containerd
 
@@ -89,10 +93,12 @@ https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-ku
     exclude=kubelet kubeadm kubectl
     EOF
 
-Set SELinux in permissive mode (effectively disabling it)
+Set SELinux in permissive mode 
+
     sudo setenforce 0
     sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
+Disable Firewalld
 
     sudo systemctl stop firewalld
     sudo systemctl disable firewalld
@@ -103,10 +109,12 @@ Set SELinux in permissive mode (effectively disabling it)
 
 
 disable swap from fstab
+
     sudo swapoff -a
 
-now kubelet will be restarting because kubeadm hasn't told it what to do. Need to configure kubelet to use approproate cgroup (systems)
- but default cgroup is systemd ACCORDING TO BELOW **
+Now kubelet will be restarting because kubeadm hasn't told it what to do. 
+Need to configure kubelet to use appropriate cgroup (systems)
+but default cgroup is systemd 
 
 
 
@@ -122,16 +130,16 @@ https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-clu
 kubeadm will set up the cluster, and finish with some instructions to setup a pod network and how to join worker nodes to the cluster
 
 
-*
-You should now deploy a pod network to the cluster.
-Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
-  https://kubernetes.io/docs/concepts/cluster-administration/addons/
 
-Then you can join any number of worker nodes by running the following on each as root:
+> You should now deploy a pod network to the cluster.
+> Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+>   https://kubernetes.io/docs/concepts/cluster-administration/addons/
+> 
+> Then you can join any number of worker nodes by running the following on each as root:
+> 
+> kubeadm join .......:6443 --token ......... \
+>         --discovery-token-ca-cert-hash sha256:..........
 
-kubeadm join .......:6443 --token ......... \
-        --discovery-token-ca-cert-hash sha256:..........
-*
 
 
 The initial token has 24 hr ttl. To generate a new token "kubadm token create --print-join-command"
@@ -143,16 +151,41 @@ The initial token has 24 hr ttl. To generate a new token "kubadm token create --
 # 4 - Apply network model
 
 
- This howto uses calico
+This howto uses calico
 https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises
 
-curl https://projectcalico.docs.tigera.io/manifests/calico.yaml -O
+    curl https://projectcalico.docs.tigera.io/manifests/calico.yaml -O
     kubectl apply -f calico.yaml
 
 
+# 5 - Join worker nodes
+
+On each worker node run the advertised join command to join the cluster
+
+   kubeadm join .......:6443 --token ......... --discovery-token-ca-cert-hash sha256:..........
 
 
+Now check the cluster status by running  on the control plane, master node. Nodes should be in ready state
 
+    kubectl get nodes
+    
+    NAME        STATUS   ROLES           AGE   VERSION
+    k2master    Ready    control-plane   83m   v1.24.2
+    k2minion1   Ready    <none>          61m   v1.24.2
 
+If they aren't ready check pod state in kube-system and troubleshoot
 
-#
+    kubectl get pods -n kube-system -o wide
+    NAME                                       READY   STATUS    RESTARTS   AGE   IP               NODE        NOMINATED NODE   READINESS GATES
+    calico-kube-controllers-6766647d54-g9kkb   1/1     Running   0          49m   192.168.11.1     k2minion1   <none>           <none>
+    calico-node-hw5ch                          1/1     Running   0          49m   10.7.3.243       k2minion1   <none>           <none>
+    calico-node-rr7bl                          1/1     Running   0          49m   10.7.3.105       k2master    <none>           <none>
+    coredns-6d4b75cb6d-jshsv                   1/1     Running   0          84m   192.168.27.130   k2master    <none>           <none>
+    coredns-6d4b75cb6d-tzwvn                   1/1     Running   0          84m   192.168.27.129   k2master    <none>           <none>
+    etcd-k2master                              1/1     Running   0          85m   10.7.3.105       k2master    <none>           <none>
+    kube-apiserver-k2master                    1/1     Running   0          85m   10.7.3.105       k2master    <none>           <none>
+    kube-controller-manager-k2master           1/1     Running   0          85m   10.7.3.105       k2master    <none>           <none>
+    kube-proxy-lg57k                           1/1     Running   0          63m   10.7.3.243       k2minion1   <none>           <none>
+    kube-proxy-mt7q5                           1/1     Running   0          84m   10.7.3.105       k2master    <none>           <none>
+    kube-scheduler-k2master                    1/1     Running   0          85m   10.7.3.105       k2master    <none>           <none>
+
