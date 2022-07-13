@@ -129,9 +129,11 @@ https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-clu
 
     kubeadm  init --pod-network-cidr=192.168.78.0/16 
 
-* *At version 1.24 the default Cgroup is systemd, so there is no need to specify this here.*
+> *At version 1.24 the default Cgroup is systemd, so there is no need to specify this here.*
 
-kubeadm will set up the cluster, and finish with some instructions to setup a pod network and how to join worker nodes to the cluster
+kubeadm will set up the cluster, and finish with some instructions to setup a pod network and how to join worker nodes to the cluster:
+
+
 
 
 
@@ -143,6 +145,8 @@ kubeadm will set up the cluster, and finish with some instructions to setup a po
 > 
 >       kubeadm join .......:6443 --token ......... \
 >               --discovery-token-ca-cert-hash sha256:..........
+
+
 
 
 
