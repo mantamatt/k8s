@@ -103,11 +103,6 @@ Disable Firewalld
     sudo systemctl stop firewalld
     sudo systemctl disable firewalld
 
-    sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-
-    sudo systemctl enable --now kubelet
-
-
 disable swap from fstab
 
     sudo vi /etc/fstab
@@ -116,7 +111,12 @@ Switch off any running swap
 
     sudo swapoff -a
 
-Now kubelet will be restarting because kubeadm hasn't told it what to do. 
+Install KUBE software
+
+    sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+    sudo systemctl enable --now kubelet
+
+Note that kubelet will be restarting at this point because kubeadm hasn't told it what to do. 
 
 
 
