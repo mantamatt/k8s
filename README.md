@@ -63,7 +63,7 @@ You should now have a file /etc/containerd/config.toml
 
 ## /etc/containerd/config.toml changes
 
-remove cri from disabled plugins:
+remove cri from disabled plugins, and add configuration for Systemd Cgroup
 
 
     disabled_plugins = [""]
@@ -110,11 +110,14 @@ Disable Firewalld
 
 disable swap from fstab
 
+    sudo vi /etc/fstab
+    
+Switch off any running swap
+
     sudo swapoff -a
 
 Now kubelet will be restarting because kubeadm hasn't told it what to do. 
-Need to configure kubelet to use appropriate cgroup (systems)
-but default cgroup is systemd 
+
 
 
 
@@ -126,6 +129,7 @@ https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-clu
 
     kubeadm  init --pod-network-cidr=192.168.78.0/16 
 
+* *At version 1.24 the default Cgroup is systemd, so there is no need to specify this here.*
 
 kubeadm will set up the cluster, and finish with some instructions to setup a pod network and how to join worker nodes to the cluster
 
@@ -137,8 +141,8 @@ kubeadm will set up the cluster, and finish with some instructions to setup a po
 > 
 > Then you can join any number of worker nodes by running the following on each as root:
 > 
-> kubeadm join .......:6443 --token ......... \
->         --discovery-token-ca-cert-hash sha256:..........
+>       kubeadm join .......:6443 --token ......... \
+>               --discovery-token-ca-cert-hash sha256:..........
 
 
 
@@ -162,7 +166,7 @@ https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onp
 
 On each worker node run the advertised join command to join the cluster
 
-   kubeadm join .......:6443 --token ......... --discovery-token-ca-cert-hash sha256:..........
+    kubeadm join .......:6443 --token ......... --discovery-token-ca-cert-hash sha256:..........
 
 
 Now check the cluster status by running  on the control plane, master node. Nodes should be in ready state
@@ -189,3 +193,12 @@ If they aren't ready check pod state in kube-system and troubleshoot
     kube-proxy-mt7q5                           1/1     Running   0          84m   10.7.3.105       k2master    <none>           <none>
     kube-scheduler-k2master                    1/1     Running   0          85m   10.7.3.105       k2master    <none>           <none>
 
+## Debugging command tips
+
+    journalctl -u kubelet
+
+    journalctl -u containerd
+
+    crictl --runtime-endpoint /run/containerd/containerd.sock ps
+
+    kubectl describe node <master_node_name>
