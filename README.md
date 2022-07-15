@@ -147,7 +147,7 @@ kubeadm will set up the cluster, and finish with some instructions to setup a po
 >               --discovery-token-ca-cert-hash sha256:..........
 
 
-
+Copy this information to a notepad, you will be needing the kubeadm join command iin a short while to join the worker nodes to the master.
 
 
 The initial token has 24 hr ttl. To generate a new token "kubadm token create --print-join-command"
@@ -180,7 +180,7 @@ https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onp
 
 On each worker node run the advertised join command to join the cluster
 
-    kubeadm join .......:6443 --token ......... --discovery-token-ca-cert-hash sha256:..........
+    sudo kubeadm join .......:6443 --token ......... --discovery-token-ca-cert-hash sha256:..........
 
 
 Now check the cluster status by running  on the control plane, master node. Nodes should be in ready state
