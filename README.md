@@ -51,7 +51,7 @@ Apply sysctl params without reboot
 
 change cgroup docker driver to systemd
 
-    vi /usr/lib/systemd/system/docker.service
+    sudo vi /usr/lib/systemd/system/docker.service
     
     ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --exec-opt native.cgroupdriver=systemd
 
@@ -127,7 +127,7 @@ Note that kubelet will be restarting at this point because kubeadm hasn't told i
 https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
 
 
-    kubeadm  init --pod-network-cidr=192.168.78.0/16 
+    sudo kubeadm  init --pod-network-cidr=192.168.78.0/16 
 
 > *At version 1.24 the default Cgroup is systemd, so there is no need to specify this here.*
 
