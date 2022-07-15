@@ -155,6 +155,16 @@ The initial token has 24 hr ttl. To generate a new token "kubadm token create --
 
  The coredns pods will show as pending on a "kubectl get pods -n kube-system -o wide " , until a network has been installed,
  covered in step 4 
+ 
+ It is imporetant at this stage to set up your login user's access to this cluster
+
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Now you can run kubectl commmand as your user
+
+    kubectl get nodes
 
 # 4 - Apply network model
 
