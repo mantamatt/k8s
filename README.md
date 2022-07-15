@@ -216,3 +216,16 @@ If they aren't ready check pod state in kube-system and troubleshoot
     crictl --runtime-endpoint /run/containerd/containerd.sock ps
 
     kubectl describe node <master_node_name>
+    
+ ## To access an insecure local registry
+
+Add the following to /etc/containerd/config.toml
+
+    [plugins.cri.registry.mirrors."10.7.3.6:5000"]
+          endpoint = ["http://10.7.3.6:5000"]
+    [plugins.cri.registry.configs]
+    [plugins.cri.registry.configs."10.7.3.6:5000".tls]
+          insecure_skip_verify = true
+
+
+
